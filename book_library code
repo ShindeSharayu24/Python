@@ -1,0 +1,115 @@
+import os
+
+class Book:
+    def __init__(self, book_id, title, author, year):
+        self.book_id = book_id
+        self.title = title
+        self.author = author
+        self.year = year
+
+    def to_string(self):
+        return f"{self.book_id}|{self.title}|{self.author}|{self.year}"
+
+    @staticmethod
+    def from_string(data):
+        parts = data.strip().split("|")
+        if len(parts) != 4:
+            return None
+        return Book(parts[0], parts[1], parts[2], parts[3])
+
+class Library:
+    def __init__(self, data_file="library_data.txt"):
+        self.data_file = data_file
+        self.books = []
+        self.load_books()
+
+    def load_books(self):
+        if not os.path.exists(self.data_file):
+            open(self.data_file, 'w').close()
+        with open(self.data_file, 'r') as file:
+            for line in file:
+                book = Book.from_string(line)
+                if book:
+                    self.books.append(book)
+
+    def save_books(self):
+        with open(self.data_file, 'w') as file:
+            for book in self.books:
+                file.write(book.to_string() + "\n")
+
+    def add_book(self, book):
+        for b in self.books:
+            if b.book_id == book.book_id:
+                print("A book with this ID already exists.")
+                return
+        self.books.append(book)
+        self.save_books()
+        print("Book added successfully.")
+
+    def display_books(self):
+        if not self.books:
+            print("No books in the library.")
+            return
+        print("\nAvailable Books:")
+        for book in self.books:
+            print(f"ID: {book.book_id}, Title: {book.title}, Author: {book.author}, Year: {book.year}")
+        print()
+
+    def search_book(self, title):
+        found = False
+        for book in self.books:
+            if title.lower() in book.title.lower():
+                print(f"Found: ID: {book.book_id}, Title: {book.title}, Author: {book.author}, Year: {book.year}")
+                found = True
+        if not found:
+            print("No book found with that title.")
+
+    def delete_book(self, book_id):
+        for i, book in enumerate(self.books):
+            if book.book_id == book_id:
+                del self.books[i]
+                self.save_books()
+                print("Book deleted successfully.")
+                return
+        print("Book not found.")
+
+def main_menu():
+    lib = Library()
+
+    while True:
+        print("\n--- Book Library Menu ---")
+        print("1. Add Book")
+        print("2. Display All Books")
+        print("3. Search Book by Title")
+        print("4. Delete Book by ID")
+        print("5. Exit")
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == '1':
+            book_id = input("Enter Book ID: ")
+            title = input("Enter Title: ")
+            author = input("Enter Author: ")
+            year = input("Enter Year of Publication: ")
+            new_book = Book(book_id, title, author, year)
+            lib.add_book(new_book)
+
+        elif choice == '2':
+            lib.display_books()
+
+        elif choice == '3':
+            title = input("Enter title to search: ")
+            lib.search_book(title)
+
+        elif choice == '4':
+            book_id = input("Enter Book ID to delete: ")
+            lib.delete_book(book_id)
+
+        elif choice == '5':
+            print("Exiting... Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+if __name__ == "__main__":
+    main_menu()
